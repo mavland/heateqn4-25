@@ -1,0 +1,121 @@
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+# X axis dimensions
+I = 30
+
+# Y axis dimensions
+N = 1000
+
+
+#Definition of space to be integrated over
+#in t:
+a = 0
+b = 0.5
+
+#in x:
+c = 0
+d = 1
+
+#Definition of dt
+h = (b-a)/(N)
+dt = h
+#Definition of dx
+j = (d-c)/(I)
+dx = j
+
+
+#Defining np array containing values for integration
+#Additionally defines boundary conditions (sine wave at t = 0)
+
+
+xf = np.zeros((N,I))
+xf[0,:] = np.sin(np.pi*np.linspace(0,1,I))
+
+n = 0
+
+#Integrating using first and second order finite difference
+
+while n < N-1:
+    xf[n,0] = 0
+    i = 1
+    while i < I-1:
+      xf[n+1,i] = xf[n,i]+ (dt*(xf[n,i+1]-2*xf[n,i]+xf[n,i-1]))/((dx**2))
+      i += 1
+    n += 1
+    
+# Table to check numbers are behaving 
+# pd.DataFrame(xf)
+
+#Analytic solution for comparison:
+
+def u(x,t):
+  return np.exp(-(np.pi**2)*t)*np.sin(np.pi*x)
+
+
+fig = plt.figure(figsize=(15,5),frameon=False)
+ax1 = plt.subplot(1,2,1)
+ax1.imshow(xf,extent=[0,1,0.5,0])
+ax1.set_xlabel('Position dx')
+ax1.set_ylabel('Time dt')
+ax1.set_title('U(x,t), finite difference')
+
+ax2 = plt.subplot(1,2,2)
+
+x1 = np.linspace(0,1,I)
+t1 = np.linspace(0,0.5,N)
+X,Y = np.meshgrid(x1,t1)
+
+ax2.imshow(u(X,Y),extent=[0,1,0.5,0])
+ax2.set_xlabel('Position dx')
+ax2.set_ylabel('Time dt')
+ax2.set_title('U(x,t), analytic')
+
+print('N = ',N)
+print('I = ',I)
+print('dt = ',dt)
+print('dx = ',dx,'dx^2 = ',dx**2)
+print('Stability satisfied? ', dt < .5*dx**2)
+
+
+#Taking a look at U(x,t) vs dx
+
+ux = np.linspace(0,1,I)
+
+fig2 = plt.figure(figsize=(15,10),frameon=False)
+ax1 = plt.subplot(2,2,1)
+
+ax1.plot(ux,u(ux,0),label = 'analytic')
+ax1.plot(ux,xf[0,:], label = 'FD')
+ax1.set_title('u(x,t = 0)')
+ax1.set_xlabel('Position dx')
+ax1.set_ylabel('u(x,0)')
+ax1.legend()
+
+ax2 = plt.subplot(2,2,2)
+ax2.plot(ux,u(ux,dt),label = 'analytic')
+ax2.plot(ux,xf[1,:], label = 'FD')
+ax2.set_title('u(x,t = '+str(round(dt,ndigits = 3))+')')
+ax2.set_xlabel('Position dx')
+ax2.set_ylabel('u(x,t)')
+ax2.legend()
+
+if N>=400:
+
+  ax3 = plt.subplot(2,2,3)
+  ax3.plot(ux,u(ux,400*dt),label = 'analytic')
+  ax3.plot(ux,xf[400,:], label = 'FD')
+  ax3.set_title('u(x,t = '+str(round(400*dt,ndigits = 3))+')')
+  ax3.set_xlabel('Position dx')
+  ax3.set_ylabel('u(x,t)')
+  ax3.legend()
+
+if N>=950:
+  ax4 = plt.subplot(2,2,4)
+  ax4.plot(ux,u(ux,950*dt),label = 'analytic')
+  ax4.plot(ux,xf[950,:], label = 'FD')
+  ax4.set_title('u(x,t = '+str(round(950*dt,ndigits = 3))+')')
+  ax4.set_xlabel('Position dx')
+  ax4.set_ylabel('u(x,t)')
+  ax4.legend()
